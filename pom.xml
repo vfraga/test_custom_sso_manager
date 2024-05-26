@@ -1,0 +1,272 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>org.wso2.sample.support</groupId>
+    <artifactId>custom_sso_manager</artifactId>
+    <version>1.0-SNAPSHOT</version>
+
+    <packaging>bundle</packaging>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <java.version>11</java.version>
+        <maven.compiler.plugin.version>3.8.1</maven.compiler.plugin.version>
+        <aspectj.plugin.version>1.13.1</aspectj.plugin.version>
+        <import.package.version.commons.logging>[1.2,2.0)</import.package.version.commons.logging>
+        <application.authenticator.samlsso.version>5.8.1</application.authenticator.samlsso.version>
+        <identity.sso.saml.version>5.11.5</identity.sso.saml.version>
+        <jackson.dataformat.yaml.version>2.9.10</jackson.dataformat.yaml.version>
+        <jackson.databind.version>2.9.10.8</jackson.databind.version>
+        <aspectjrt.version>1.9.2</aspectjrt.version>
+
+        <bundle.plugin.version>3.2.0</bundle.plugin.version>
+        <apache.felix.scr.ds.annotations.version>1.2.4</apache.felix.scr.ds.annotations.version>
+
+        <wss4j.xml.security.imp.pkg.version.range>[2.1.7,2.4.0)</wss4j.xml.security.imp.pkg.version.range>
+        <imp.pkg.version.javax.servlet>[2.6.0, 3.0.0)</imp.pkg.version.javax.servlet>
+        <javax.xml.parsers.import.pkg.version>[0.0.0, 1.0.0)</javax.xml.parsers.import.pkg.version>
+        <com.google.code.gson.osgi.version.range>[2.3.1,3.0.0)</com.google.code.gson.osgi.version.range>
+        <json.wso2.version.range>[3.0.0.wso2v1, 4.0.0)</json.wso2.version.range>
+        <encoder.wso2.import.version.range>[1.2.0, 2.0.0)</encoder.wso2.import.version.range>
+        <httpcore.version.osgi.import.range>[4.3.0, 5.0.0)</httpcore.version.osgi.import.range>
+
+        <joda.wso2.osgi.version.range>[2.8.2,3.0.0)</joda.wso2.osgi.version.range>
+
+        <commons-lang.wso2.osgi.version.range>[2.6.0,3.0.0)</commons-lang.wso2.osgi.version.range>
+        <commons-codec.wso2.osgi.version.range>[1.4.0,2.0.0)</commons-codec.wso2.osgi.version.range>
+        <commons-collections.wso2.osgi.version.range>[3.2.0,4.0.0)</commons-collections.wso2.osgi.version.range>
+        <commons-logging.wso2.osgi.version.range>[1.2.0,2.0.0)</commons-logging.wso2.osgi.version.range>
+        <commons-io.wso2.osgi.version.range>[2.4.0,3.0.0)</commons-io.wso2.osgi.version.range>
+
+        <opensaml3.wso2.osgi.version.range>[3.3.1,3.4.0)</opensaml3.wso2.osgi.version.range>
+
+        <osgi.framework.imp.pkg.version.range>[1.7.0, 2.0.0)</osgi.framework.imp.pkg.version.range>
+        <osgi.service.component.imp.pkg.version.range>[1.2.0, 2.0.0)</osgi.service.component.imp.pkg.version.range>
+
+        <identity.outbound.auth.samlsso.imp.version.range>[5.8.1,5.9.2)</identity.outbound.auth.samlsso.imp.version.range>
+        <identity.inbound.auth.saml.imp.version.range>[5.11.5,5.11.37)</identity.inbound.auth.saml.imp.version.range>
+
+        <carbon.identity.framework.imp.pkg.version.range>[5.25.92,6.0.0)</carbon.identity.framework.imp.pkg.version.range>
+
+        <saml.common.util.version.range>[1.0.0,2.0.0)</saml.common.util.version.range>
+
+        <carbon.kernel.package.import.version.range>[4.9.0,4.10.9)</carbon.kernel.package.import.version.range>
+        <carbon.kernel.registry.imp.pkg.version>[1.0.1, 2.0.0)</carbon.kernel.registry.imp.pkg.version>
+        <carbon.base.imp.pkg.version.range>[1.0.0, 2.0.0)</carbon.base.imp.pkg.version.range>
+        <carbon.user.api.imp.pkg.version.range>[1.0.1, 2.0.0)</carbon.user.api.imp.pkg.version.range>
+        <version.org.wso2.orbit.com.sun.xml.ws.jaxws>2.3.2.wso2v1</version.org.wso2.orbit.com.sun.xml.ws.jaxws>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.outbound.auth.saml2</groupId>
+            <artifactId>org.wso2.carbon.identity.application.authenticator.samlsso</artifactId>
+            <version>${application.authenticator.samlsso.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.logging.log4j</groupId>
+                    <artifactId>log4j-api</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.logging.log4j</groupId>
+                    <artifactId>log4j-core</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.inbound.auth.saml2</groupId>
+            <artifactId>org.wso2.carbon.identity.sso.saml</artifactId>
+            <version>${identity.sso.saml.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.logging.log4j</groupId>
+                    <artifactId>log4j-api</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.logging.log4j</groupId>
+                    <artifactId>log4j-core</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.opensaml</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.felix</groupId>
+            <artifactId>org.apache.felix.scr.ds-annotations</artifactId>
+            <version>${apache.felix.scr.ds.annotations.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.wso2.orbit.sun.xml.ws</groupId>
+            <artifactId>jaxws-ri</artifactId>
+            <version>${version.org.wso2.orbit.com.sun.xml.ws.jaxws}</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <finalName>${project.groupId}.${project.artifactId}-${project.version}</finalName>
+        <plugins>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven.compiler.plugin.version}</version>
+                <configuration>
+                    <encoding>${project.build.sourceEncoding}</encoding>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <version>${bundle.plugin.version}</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <instructions>
+                        <Bundle-SymbolicName>custom_sso_manager</Bundle-SymbolicName>
+                        <Bundle-Name>custom_sso_manager</Bundle-Name>
+                        <Private-Package>
+                            org.wso2.support.sample.internal
+                        </Private-Package>
+                        <Import-Package>
+                            javax.crypto,
+                            javax.servlet; version="${imp.pkg.version.javax.servlet}",
+                            javax.servlet.http; version="${imp.pkg.version.javax.servlet}",
+                            javax.xml.namespace,
+                            javax.xml.parsers; version="${javax.xml.parsers.import.pkg.version}",
+                            javax.xml.xpath,
+                            javax.xml.soap.*,
+                            javax.xml.transform.*,
+                            javax.net.ssl.*,
+
+                            com.google.gson.*; version="${com.google.code.gson.osgi.version.range}",
+
+                            org.json.*; version="${json.wso2.version.range}",
+
+                            org.aspectj.lang.*,
+
+                            org.owasp.encoder.*; version="${encoder.wso2.import.version.range}",
+
+                            org.w3c.dom.*,
+
+                            org.xml.sax.*,
+
+                            org.apache.http.*; version="${httpcore.version.osgi.import.range}",
+                            org.apache.commons.lang.*; version="${commons-lang.wso2.osgi.version.range}",
+                            org.apache.commons.io.*; version="${commons-io.wso2.osgi.version.range}",
+                            org.apache.commons.collections.*; version="${commons-collections.wso2.osgi.version.range}",
+                            org.apache.commons.codec.binary; version="${commons-codec.wso2.osgi.version.range}",
+                            org.apache.commons.logging; version="${commons-logging.wso2.osgi.version.range}",
+                            org.apache.xml.security; version="${wss4j.xml.security.imp.pkg.version.range}",
+                            org.apache.xml.security.utils; version="${wss4j.xml.security.imp.pkg.version.range}",
+                            org.apache.xml.security.exceptions; version="${wss4j.xml.security.imp.pkg.version.range}",
+
+                            org.joda.time; version="${joda.wso2.osgi.version.range}",
+
+                            org.opensaml.*; version="${opensaml3.wso2.osgi.version.range}",
+                            net.shibboleth.utilities.java.support.*; version="${opensaml3.wso2.osgi.version.range}",
+
+                            org.osgi.framework; version="${osgi.framework.imp.pkg.version.range}",
+                            org.osgi.service.component; version="${osgi.service.component.imp.pkg.version.range}",
+                            org.osgi.service.component.*; version="${osgi.service.component.imp.pkg.version.range}",
+                            org.osgi.service.http.*; version="${osgi.service.component.imp.pkg.version.range}",
+
+                            org.eclipse.equinox.http.helper.*,
+
+                            org.wso2.carbon.identity.application.authenticator.samlsso.*,
+
+                            org.wso2.carbon.identity.base; version="${carbon.identity.framework.imp.pkg.version.range}",
+                            org.wso2.carbon.identity.core.*; version="${carbon.identity.framework.imp.pkg.version.range}",
+                            org.wso2.carbon.identity.application.authentication.framework.*; version="${carbon.identity.framework.imp.pkg.version.range}",
+                            org.wso2.carbon.identity.application.common.model; version="${carbon.identity.framework.imp.pkg.version.range}",
+                            org.wso2.carbon.identity.application.common.util; version="${carbon.identity.framework.imp.pkg.version.range}",
+                            org.wso2.carbon.identity.application.common; version="${carbon.identity.framework.imp.pkg.version.range}",
+                            org.wso2.carbon.identity.application.mgt; version="${carbon.identity.framework.imp.pkg.version.range}",
+                            org.wso2.carbon.identity.saml.common.util.*; version="${saml.common.util.version.range}",
+                            org.wso2.carbon.identity.sso.saml.*; version="${identity.inbound.auth.saml.imp.version.range}",
+
+                            org.wso2.carbon.idp.mgt.util; version="${carbon.identity.framework.imp.pkg.version.range}",
+
+                            org.wso2.carbon; version="${carbon.kernel.package.import.version.range}",
+                            org.wso2.carbon.context; version="${carbon.kernel.package.import.version.range}",
+                            org.wso2.carbon.core; version="${carbon.kernel.package.import.version.range}",
+                            org.wso2.carbon.registry.core; version="${carbon.kernel.registry.imp.pkg.version}",
+
+                            org.wso2.carbon.base; version="${carbon.base.imp.pkg.version.range}",
+                            org.wso2.carbon.base.api; version="${carbon.base.imp.pkg.version.range}",
+                            org.wso2.carbon.ui; version="${carbon.kernel.package.import.version.range}",
+                            org.wso2.carbon.user.api; version="${carbon.user.api.imp.pkg.version.range}",
+                            org.wso2.carbon.user.core.service; version="${carbon.kernel.package.import.version.range}",
+                            org.wso2.carbon.utils; version="${carbon.kernel.package.import.version.range}",
+                            *;resolution:=optional
+                        </Import-Package>
+                        <Export-Package>
+                            !org.wso2.support.sample.internal,
+                            org.wso2.support.sample.manager
+                        </Export-Package>
+                        <Embed-Dependency>
+                            jaxws-ri
+                        </Embed-Dependency>
+                        <DynamicImport-Package>*</DynamicImport-Package>
+                        <_noee>true</_noee>
+                    </instructions>
+                </configuration>
+            </plugin>
+
+        </plugins>
+    </build>
+
+    <repositories>
+        <repository>
+            <id>central</id>
+            <name>Central Repository</name>
+            <url>https://repo1.maven.org/maven2/</url>
+            <layout>default</layout>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>wso2.releases</id>
+            <name>WSO2 internal Repository</name>
+            <url>https://maven.wso2.org/nexus/content/repositories/releases/</url>
+            <releases>
+                <enabled>true</enabled>
+                <updatePolicy>daily</updatePolicy>
+                <checksumPolicy>ignore</checksumPolicy>
+            </releases>
+        </repository>
+        <repository>
+            <id>wso2-nexus</id>
+            <name>WSO2 internal Repository</name>
+            <url>https://maven.wso2.org/nexus/content/groups/wso2-public/</url>
+            <releases>
+                <enabled>true</enabled>
+                <updatePolicy>daily</updatePolicy>
+                <checksumPolicy>ignore</checksumPolicy>
+            </releases>
+        </repository>
+    </repositories>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>central</id>
+            <name>Central Repository</name>
+            <url>https://repo1.maven.org/maven2/</url>
+            <layout>default</layout>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <releases>
+                <updatePolicy>never</updatePolicy>
+            </releases>
+        </pluginRepository>
+    </pluginRepositories>
+
+</project>
