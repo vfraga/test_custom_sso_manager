@@ -1,6 +1,5 @@
 package org.wso2.support.sample.manager;
 
-import net.shibboleth.utilities.java.support.xml.BasicParserPool;
 import net.shibboleth.utilities.java.support.xml.SerializeSupport;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.ArrayUtils;
@@ -8,11 +7,9 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.joda.time.DateTime;
-import org.opensaml.core.config.InitializationException;
 import org.opensaml.core.xml.XMLObject;
 import org.opensaml.core.xml.config.XMLObjectProviderRegistrySupport;
 import org.opensaml.core.xml.io.Marshaller;
-import org.opensaml.core.xml.io.MarshallerFactory;
 import org.opensaml.core.xml.io.MarshallingException;
 import org.opensaml.saml.common.SAMLVersion;
 import org.opensaml.saml.common.xml.SAMLConstants;
@@ -63,17 +60,13 @@ import org.opensaml.xmlsec.keyinfo.impl.StaticKeyInfoCredentialResolver;
 import org.opensaml.xmlsec.signature.impl.SignatureImpl;
 import org.opensaml.xmlsec.signature.support.SignatureException;
 import org.opensaml.xmlsec.signature.support.SignatureValidator;
-import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
-import org.w3c.dom.bootstrap.DOMImplementationRegistry;
-import org.w3c.dom.ls.DOMImplementationLS;
-import org.w3c.dom.ls.LSOutput;
-import org.w3c.dom.ls.LSSerializer;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.identity.application.authentication.framework.config.builder.FileBasedConfigurationBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationContextProperty;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationRequest;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authenticator.samlsso.SAMLSSOAuthenticator;
@@ -94,7 +87,6 @@ import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.core.ServiceURLBuilder;
 import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.identity.saml.common.util.SAMLInitializer;
 import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
@@ -104,8 +96,8 @@ import javax.crypto.SecretKey;
 import javax.servlet.http.HttpServletRequest;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -123,34 +115,10 @@ public class SAML2SSOManager extends DefaultSAML2SSOManager {
     private static final String NAME_ID_TYPE = "NameIDType";
     private static final Log log = LogFactory.getLog(DefaultSAML2SSOManager.class);
     private static final String VERIFY_ASSERTION_ISSUER = "VerifyAssertionIssuer";
-    private static final String BEGIN_CERTIFICATE = "-----BEGIN CERTIFICATE-----";
-    private static final String END_CERTIFICATE = "-----END CERTIFICATE-----";
-    private static boolean bootStrapped = false;
     private static final String DEFAULT_MULTI_ATTRIBUTE_SEPARATOR = ",";
     private IdentityProvider identityProvider = null;
     private Map<String, String> properties;
     private String tenantDomain;
-
-    public static void doBootstrap() {
-
-        /* Initializing the OpenSAML library */
-        // Uncomment line below for fix:
-        // System.setProperty("javax.xml.parsers.DocumentBuilderFactory", "org.apache.xerces.jaxp.DocumentBuilderFactoryImpl");
-        if (!bootStrapped) {
-            Thread thread = Thread.currentThread();
-            ClassLoader loader = thread.getContextClassLoader();
-            thread.setContextClassLoader(DefaultSAML2SSOManager.class.getClassLoader());
-            try {
-                SAMLInitializer.doBootstrap();
-                bootStrapped = true;
-            } catch (InitializationException e) {
-                log.error("Error in bootstrapping the OpenSAML3 library", e);
-            } finally {
-                thread.setContextClassLoader(loader);
-            }
-        }
-
-    }
 
     @Override
     public void init(String tenantDomain, Map<String, String> properties, IdentityProvider idp)
@@ -209,12 +177,7 @@ public class SAML2SSOManager extends DefaultSAML2SSOManager {
         String encodedRequestMessage = encodeRequestMessage(requestMessage);
         StringBuilder httpQueryString = new StringBuilder("SAMLRequest=" + encodedRequestMessage);
 
-        try {
-            httpQueryString.append("&RelayState=" + URLEncoder.encode(contextIdentifier, "UTF-8").trim());
-        } catch (UnsupportedEncodingException e) {
-            throw new SAMLSSOException(SSOErrorConstants.ErrorMessages.URL_ENCODING_RELAY_STATE.getCode(),
-                    SSOErrorConstants.ErrorMessages.URL_ENCODING_RELAY_STATE.getMessage(), e);
-        }
+        httpQueryString.append("&RelayState=" + URLEncoder.encode(contextIdentifier, StandardCharsets.UTF_8).trim());
 
         boolean isRequestSigned;
         if (!isLogout) {
@@ -373,6 +336,10 @@ public class SAML2SSOManager extends DefaultSAML2SSOManager {
 
         String decodedResponse = new String(org.apache.commons.codec.binary.Base64.decodeBase64(request.getParameter(
                 SSOConstants.HTTP_POST_PARAM_SAML2_RESP).getBytes()));
+
+        // Setting this to help the error happen on the first login attempt too
+        System.setProperty("javax.xml.parsers.DocumentBuilderFactory", "org.apache.xerces.jaxp.DocumentBuilderFactoryImpl");
+
         XMLObject samlObject = SSOUtils.unmarshall(decodedResponse);
         validateResponseFormat(samlObject);
         executeSAMLReponse(request, samlObject);
@@ -564,9 +531,6 @@ public class SAML2SSOManager extends DefaultSAML2SSOManager {
                     SSOErrorConstants.ErrorMessages.SAML_ASSERTION_NOT_FOUND_IN_RESPONSE.getMessage());
         }
 
-        // trigger the error:
-        SSOUtils.marshall(assertion);
-
         // Validate the assertion issuer. This is an optional validation which is not mandate by the spec.
         validateAssertionIssuer(assertion);
 
@@ -603,6 +567,9 @@ public class SAML2SSOManager extends DefaultSAML2SSOManager {
         nameIdFormat = assertion.getSubject().getNameID().getFormat();
 
         request.getSession(false).setAttribute("samlssoAttributes", getAssertionStatements(assertion));
+
+        // Trigger error:
+        triggerError(assertion);
 
         if (assertion.getAuthnStatements() != null) {
             List<String> authnContextClassRefs = new ArrayList<>();
@@ -1005,10 +972,10 @@ public class SAML2SSOManager extends DefaultSAML2SSOManager {
 
             // log saml
             if (log.isDebugEnabled()) {
-                log.debug("SAML Request  :  " + deflaterOutputStream.toString());
+                log.debug("SAML Request  :  " + deflaterOutputStream);
             }
 
-            return URLEncoder.encode(encodedRequestMessage, "UTF-8").trim();
+            return URLEncoder.encode(encodedRequestMessage, StandardCharsets.UTF_8).trim();
 
         } catch (MarshallingException | IOException e) {
             throw new SAMLSSOException(SSOErrorConstants.ErrorMessages.IO_ERROR.getCode(),
@@ -1369,31 +1336,14 @@ public class SAML2SSOManager extends DefaultSAML2SSOManager {
         throw new Exception("Could not obtain the encrypted key from the encrypted assertion.");
     }
 
-    private String safeMarshall(XMLObject xmlObject) throws SAMLSSOException {
+    private void triggerError(final Assertion assertion) {
         try {
-            System.setProperty("javax.xml.parsers.DocumentBuilderFactory",
-                    "org.apache.xerces.jaxp.DocumentBuilderFactoryImpl");
-
-            MarshallerFactory marshallerFactory = XMLObjectProviderRegistrySupport.getMarshallerFactory();
-            Marshaller marshaller = marshallerFactory.getMarshaller(xmlObject);
-
-            BasicParserPool pool = new BasicParserPool();
-            pool.initialize();
-            Document rootDocument = pool.newDocument();
-
-            Element element = marshaller.marshall(xmlObject, rootDocument);
-
-            ByteArrayOutputStream byteArrayOutputStrm = new ByteArrayOutputStream();
-            DOMImplementationRegistry registry = DOMImplementationRegistry.newInstance();
-            DOMImplementationLS impl = (DOMImplementationLS) registry.getDOMImplementation("LS");
-            LSSerializer writer = impl.createLSSerializer();
-            LSOutput output = impl.createLSOutput();
-            output.setByteStream(byteArrayOutputStrm);
-            writer.write(element, output);
-            return byteArrayOutputStrm.toString();
-        } catch (Exception e) {
-            log.error("Error Serializing the SAML Response");
-            throw new SAMLSSOException(SSOErrorConstants.ErrorMessages.IO_ERROR.getCode(), "Error Serializing the SAML Response", e);
+            log.debug("Marshalling ....");
+            SSOUtils.marshall(assertion);
+            log.debug("Marshalling Done ....");
+        } catch (SAMLSSOException e) {
+            log.error("Error in SSOUtils::marshall: ", e);
+            throw new RuntimeException(e);
         }
     }
 }
